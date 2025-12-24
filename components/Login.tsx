@@ -1,7 +1,8 @@
-
 import React, { useState } from 'react';
 import { useStore } from '../store';
 import { User, DoorOpen, Loader2 } from 'lucide-react';
+// @ts-ignore
+import titleImg from './title.jpg';
 
 const Login: React.FC = () => {
   const [roomName, setRoomName] = useState('');
@@ -31,7 +32,7 @@ const Login: React.FC = () => {
         <div className="flex flex-col items-center mb-8">
           <div className="w-full mb-6 overflow-hidden rounded-lg">
             <img 
-              src="./title.jpg" 
+              src={titleImg} 
               alt="Title" 
               className="w-full h-auto object-contain"
               style={{ aspectRatio: '709/147' }}
