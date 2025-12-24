@@ -31,7 +31,7 @@ const Login: React.FC = () => {
         <div className="flex flex-col items-center mb-8">
           <div className="w-full mb-6 overflow-hidden rounded-lg">
             <img 
-              src="title.jpg" 
+              src="./title.jpg" 
               alt="Title" 
               className="w-full h-auto object-contain"
               style={{ aspectRatio: '709/147' }}
