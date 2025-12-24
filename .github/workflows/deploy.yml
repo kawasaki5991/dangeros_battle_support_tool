@@ -1,11 +1,8 @@
-
 name: Deploy to GitHub Pages
 
 on:
   push:
-    # main または master ブランチへのプッシュを検知
     branches: [ "main", "master" ]
-  # Actionsタブからボタン一つで手動実行できるようにする
   workflow_dispatch:
 
 permissions:
@@ -13,7 +10,6 @@ permissions:
   pages: write
   id-token: write
 
-# デプロイが重複して走らないように制御
 concurrency:
   group: "pages"
   cancel-in-progress: false
@@ -29,10 +25,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
+          # キャッシュ設定を削除（ロックファイルがないため）
 
       - name: Install dependencies
-        run: npm install
+        run: npm install --no-package-lock
 
       - name: Build
         run: npm run build
