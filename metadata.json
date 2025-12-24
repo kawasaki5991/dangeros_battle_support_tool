@@ -1,0 +1,5 @@
+{
+  "name": "Dangeros Battle Support Tool",
+  "description": "A comprehensive web-based support tool for 'Combat Destruction Academy Dangeros' war simulation game, featuring a real-time 5x7 grid, dynamic unit management, and automated battle calculations.",
+  "requestFramePermissions": []
+}
