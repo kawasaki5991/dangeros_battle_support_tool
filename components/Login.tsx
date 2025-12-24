@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { useStore } from '../store.ts';
+import { useStore } from '../store';
 import { User, DoorOpen, Loader2 } from 'lucide-react';
 
 const Login: React.FC = () => {
@@ -14,7 +14,6 @@ const Login: React.FC = () => {
     if (!roomName || !handleName) return;
 
     setIsConnecting(true);
-    // PeerJS initialization is handled in App.tsx via session update
     setSession({
       roomId: 'room-' + roomName,
       roomName: roomName,
