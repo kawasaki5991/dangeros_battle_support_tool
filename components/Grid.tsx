@@ -31,7 +31,7 @@ const Cell: React.FC<{ x: number; y: number }> = ({ x, y }) => {
   return (
     <div
       ref={setNodeRef}
-      className={`relative w-32 h-32 border border-orange-300 transition-colors overflow-hidden
+      className={`relative w-24 h-24 md:w-32 md:h-32 border border-orange-300 transition-colors overflow-hidden
         ${isOver ? 'bg-orange-300/40' : 'bg-white'}
         ${containerClass}
       `}
@@ -41,7 +41,7 @@ const Cell: React.FC<{ x: number; y: number }> = ({ x, y }) => {
            <UnitItem unit={unit} />
         </div>
       ))}
-      <span className="absolute bottom-1 right-1 text-[11px] text-orange-400 font-black font-mono select-none drop-shadow-sm pointer-events-none z-0">
+      <span className="absolute bottom-1 right-1 text-[10px] md:text-[11px] text-orange-400 font-black font-mono select-none drop-shadow-sm pointer-events-none z-0">
         {ROWS[y]}{COLS[x]}
       </span>
     </div>
@@ -50,19 +50,19 @@ const Cell: React.FC<{ x: number; y: number }> = ({ x, y }) => {
 
 const Grid: React.FC = () => {
   return (
-    <div className="inline-block p-8 bg-white border-4 border-orange-800 rounded-3xl shadow-[0_25px_60px_rgba(0,0,0,0.18)] transition-all">
-      <div className="flex ml-12">
+    <div className="inline-block p-4 md:p-8 bg-white border-4 border-orange-800 rounded-3xl shadow-[0_25px_60px_rgba(0,0,0,0.18)]">
+      <div className="flex ml-8 md:ml-12">
         {COLS.map((c) => (
-          <div key={c} className="w-32 text-center text-orange-900 font-black mb-4 text-xl drop-shadow-sm">
+          <div key={c} className="w-24 md:w-32 text-center text-orange-900 font-black mb-2 md:mb-4 text-lg md:text-xl drop-shadow-sm">
             {c}
           </div>
         ))}
       </div>
 
       <div className="flex">
-        <div className="flex flex-col mr-4 pt-1">
+        <div className="flex flex-col mr-2 md:mr-4 pt-1">
           {ROWS.map((r) => (
-            <div key={r} className="h-32 flex items-center justify-center text-orange-900 font-black w-8 text-xl drop-shadow-sm">
+            <div key={r} className="h-24 md:h-32 flex items-center justify-center text-orange-900 font-black w-6 md:w-8 text-lg md:text-xl drop-shadow-sm">
               {r}
             </div>
           ))}
