@@ -1,3 +1,4 @@
+
 import { create } from 'zustand';
 import { Unit, Message, UserSession, Team, SyncPayload } from './types';
 
@@ -103,6 +104,9 @@ export const useStore = create<DangerosState>((set, get) => ({
           users: payload.users,
         });
         break;
+      case 'USERS_UPDATE':
+        set({ users: payload.users });
+        break;
       case 'UNIT_UPDATE':
         get().updateUnit(payload.unit, true);
         break;
@@ -119,11 +123,12 @@ export const useStore = create<DangerosState>((set, get) => ({
         get().updateTeamDP(payload.team, payload.dp, true);
         break;
       case 'USER_JOIN':
-        set((state) => ({
-          users: state.users.includes(payload.handleName) 
+        set((state) => {
+          const newUsers = state.users.includes(payload.handleName) 
             ? state.users 
-            : [...state.users, payload.handleName]
-        }));
+            : [...state.users, payload.handleName];
+          return { users: newUsers };
+        });
         break;
     }
   }
