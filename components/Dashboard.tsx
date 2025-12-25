@@ -8,22 +8,23 @@ import UnplacedZone from './UnplacedZone';
 import StatusEditor from './StatusEditor';
 import UnitItem from './UnitItem';
 import WikiExportButton from './WikiExportButton';
-import { MessageSquare, Users, LogOut, LayoutDashboard, ChevronDown, Wifi, WifiOff, Menu, X } from 'lucide-react';
+import { MessageSquare, Users, LogOut, LayoutDashboard, ChevronDown, Wifi, WifiOff, Menu, X, List } from 'lucide-react';
 import { Team } from '../types';
 
 const Dashboard: React.FC = () => {
   const { session, units, setUnits, updateUnit, setSession, users } = useStore();
   
-  // スマホ初期状態では盤面を広く見せるため、サイドバーは閉じておく
-  const [isCreationOpen, setIsCreationOpen] = useState(window.innerWidth > 768);
-  const [isUnplacedOpen, setIsUnplacedOpen] = useState(window.innerWidth > 768);
-  const [isChatOpen, setIsChatOpen] = useState(window.innerWidth > 768);
+  const isPC = window.innerWidth > 768;
+  const [isCreationOpen, setIsCreationOpen] = useState(isPC);
+  const [isUnplacedOpen, setIsUnplacedOpen] = useState(isPC);
+  const [isChatOpen, setIsChatOpen] = useState(isPC);
+  const [isStatusOpen, setIsStatusOpen] = useState(isPC);
   const [activeId, setActiveId] = useState<string | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 10, // スマホの誤タップ防止のため少し長めに設定
+        distance: 10,
       },
     })
   );
@@ -69,12 +70,10 @@ const Dashboard: React.FC = () => {
 
   const teams: Team[] = ['生徒会', '番長G', '転校生', 'その他'];
   const activeUnit = units.find(u => u.id === activeId);
-
   const isLeftCollapsed = !isCreationOpen && !isUnplacedOpen;
 
   return (
     <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-      {/* Header: モバイルでは高さを抑え、情報を整理 */}
       <header className="bg-orange-800 border-b border-orange-950 h-14 md:h-16 flex items-center justify-between px-3 md:px-6 shrink-0 z-50 shadow-lg text-white">
         <div className="flex items-center gap-2 md:gap-4 overflow-hidden">
           <h2 className="text-lg md:text-xl font-black tracking-tighter italic shrink-0">DANGEROS</h2>
@@ -92,7 +91,6 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
         
-        {/* User list: モバイルでは隠すかコンパクトに */}
         <div className="flex-1 flex items-center gap-3 overflow-x-auto mx-2 md:mx-8 custom-scrollbar scrollbar-hide">
           <div className="flex gap-1.5">
             {users.map((u, i) => (
@@ -119,7 +117,7 @@ const Dashboard: React.FC = () => {
       </header>
 
       <main className="flex-1 flex overflow-hidden bg-orange-100 relative h-[calc(100dvh-56px)] md:h-[calc(100dvh-64px)]">
-        {/* Left Sidebar: Mobile Overlay */}
+        {/* Left Sidebar */}
         <div className={`
           fixed md:relative inset-y-0 left-0 z-40 md:z-10
           ${!isLeftCollapsed ? 'w-full sm:w-[320px] md:w-[400px]' : 'w-0 md:w-14'}
@@ -167,14 +165,16 @@ const Dashboard: React.FC = () => {
 
         {/* Center Board Area */}
         <div className="flex-1 flex flex-col overflow-hidden min-w-0 z-0">
-          <div className="flex-1 flex items-center justify-center overflow-auto custom-scrollbar bg-[radial-gradient(#fdba74_1px,transparent_1px)] [background-size:24px_24px] p-0 relative touch-pan-x touch-pan-y">
-            <div className="min-w-full min-h-full flex items-center justify-center p-4 md:p-12">
-              <div className="transform origin-center scale-[0.7] sm:scale-90 md:scale-100">
+          <div className="flex-1 overflow-auto custom-scrollbar bg-[radial-gradient(#fdba74_1px,transparent_1px)] [background-size:24px_24px] p-0 relative touch-pan-x touch-pan-y">
+            {/* Grid wrapper for mobile scrolling fixes */}
+            <div className="min-w-max min-h-full flex items-center justify-center p-4 md:p-12">
+              <div className="md:scale-100 transform origin-center">
                 <Grid />
               </div>
             </div>
-            {/* 盤面浮遊ボタン (モバイル用トグル) */}
-            <div className="absolute bottom-6 left-6 z-20 flex flex-col gap-3">
+            
+            {/* Wiki & Menu Button */}
+            <div className="fixed bottom-6 left-6 md:absolute md:bottom-6 md:left-6 z-20 flex flex-col gap-3">
               <WikiExportButton />
               <button 
                 onClick={() => {setIsCreationOpen(true); setIsUnplacedOpen(true)}}
@@ -183,7 +183,15 @@ const Dashboard: React.FC = () => {
                 <Menu size={24} />
               </button>
             </div>
-            <div className="absolute bottom-6 right-6 z-20 md:hidden">
+            
+            {/* Mobile Chat & Status Toggles */}
+            <div className="fixed bottom-6 right-6 md:hidden z-20 flex flex-col gap-3">
+              <button 
+                onClick={() => setIsStatusOpen(!isStatusOpen)}
+                className="bg-blue-700 text-white p-3 rounded-full shadow-lg active:scale-90"
+              >
+                <List size={24} />
+              </button>
               <button 
                 onClick={() => setIsChatOpen(true)}
                 className="bg-orange-700 text-white p-3 rounded-full shadow-lg active:scale-90"
@@ -193,13 +201,28 @@ const Dashboard: React.FC = () => {
             </div>
           </div>
           
-          {/* Status Editor: モバイルでは高さを抑えつつスクロール可能に */}
-          <div className="bg-white border-t-2 md:border-t-4 border-orange-200 p-2 md:p-6 shadow-[0_-8px_30px_rgb(0,0,0,0.12)] overflow-hidden flex flex-col h-[30%] md:h-[45%]">
-            <StatusEditor />
+          {/* Status Editor: PCでは下部に固定、スマホではトレイ式 */}
+          <div className={`
+            bg-white border-t-2 md:border-t-4 border-orange-200 shadow-[0_-8px_30px_rgb(0,0,0,0.12)] transition-all duration-300 overflow-hidden flex flex-col
+            ${isPC 
+              ? `h-[45%] ${isStatusOpen ? '' : 'translate-y-full h-0'}` 
+              : `fixed inset-x-0 bottom-0 z-40 rounded-t-3xl ${isStatusOpen ? 'h-[80vh]' : 'h-0 translate-y-full'}`
+            }
+          `}>
+            {/* Mobile close button for status */}
+            {!isPC && (
+               <div className="flex justify-between items-center px-4 py-2 border-b border-orange-100 bg-orange-50">
+                 <span className="font-black text-orange-900">ステータス管理</span>
+                 <button onClick={() => setIsStatusOpen(false)} className="p-2 text-orange-800"><X size={24}/></button>
+               </div>
+            )}
+            <div className="flex-1 overflow-hidden p-2 md:p-6">
+              <StatusEditor />
+            </div>
           </div>
         </div>
 
-        {/* Right Sidebar: Chat - Mobile Overlay */}
+        {/* Right Sidebar */}
         <div className={`
           fixed md:relative inset-y-0 right-0 z-40 md:z-10
           ${isChatOpen ? 'w-full sm:w-[320px] md:w-[420px]' : 'w-0 md:w-14'}
@@ -223,11 +246,11 @@ const Dashboard: React.FC = () => {
         </div>
       </main>
 
-      {/* Overlay Backdrop for Mobile */}
-      {( (isChatOpen || !isLeftCollapsed) && window.innerWidth < 768) && (
+      {/* Overlay Backdrop for Mobile sidebars */}
+      {( (isChatOpen || !isLeftCollapsed || (!isPC && isStatusOpen)) && window.innerWidth < 768) && (
         <div 
           className="fixed inset-0 bg-black/20 z-30 md:hidden" 
-          onClick={() => { setIsChatOpen(false); setIsCreationOpen(false); setIsUnplacedOpen(false); }}
+          onClick={() => { setIsChatOpen(false); setIsCreationOpen(false); setIsUnplacedOpen(false); setIsStatusOpen(false); }}
         />
       )}
 
