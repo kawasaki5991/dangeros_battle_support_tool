@@ -4,7 +4,7 @@ import { Download, Check, AlertCircle } from 'lucide-react';
 import { Team, Unit, Gender } from '../types';
 
 const WikiImportButton: React.FC = () => {
-  const { session, addUnit, updateTeamDP } = useStore();
+  const { session, addUnit, updateTeamDP, units } = useStore();
   const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
 
   const parseWikiText = (text: string) => {
@@ -18,11 +18,54 @@ const WikiImportButton: React.FC = () => {
       'その他': 'その他'
     };
 
-    lines.forEach(line => {
+    const ROWS_KEYS = ['Ａ', 'Ｂ', 'Ｃ', 'Ｄ', 'Ｅ'];
+
+    lines.forEach((line, index) => {
       line = line.trim();
       if (!line) return;
 
-      // Parse Team and DP: *TeamName　DP：1
+      // --- Parse Grid for Walls ---
+      // Example: |BGCOLOR(silver):''Ａ''| | | |BGCOLOR(black):&color(white){&color(black){__}壁&color(black){__}}| | | |
+      if (line.startsWith('|BGCOLOR(silver):') && line.includes("''")) {
+        const rowKeyMatch = line.match(/''([Ａ-Ｅ])''/);
+        if (rowKeyMatch) {
+          const y = ROWS_KEYS.indexOf(rowKeyMatch[1]);
+          if (y !== -1) {
+            const cells = line.split('|').filter(c => c !== '');
+            // cells[0] is row header, cells[1...7] are columns
+            for (let x = 0; x < 7; x++) {
+              const cellContent = cells[x + 1] || '';
+              if (cellContent.includes('壁')) {
+                // Check if wall already exists at this position to avoid duplicates
+                const exists = units.some(u => u.type === 'wall' && u.pos_x === x && u.pos_y === y);
+                if (!exists) {
+                  addUnit({
+                    id: `wall-${y}-${x}-${Math.random().toString(36).substr(2, 4)}`,
+                    room_id: session.roomId!,
+                    type: 'wall',
+                    name: '壁',
+                    pos_x: x,
+                    pos_y: y,
+                    is_dead: false,
+                    hp: 2,
+                    max_hp: 2,
+                    atk: 0,
+                    def: 0,
+                    mp: 0,
+                    max_mp: 0,
+                    fs_value: 0,
+                    is_leader: false,
+                    is_secret: false,
+                    is_ability_rest: false,
+                  });
+                }
+              }
+            }
+          }
+        }
+      }
+
+      // --- Parse Team and DP ---
       if (line.startsWith('*')) {
         const teamMatch = line.match(/^\*([^\s　]+)/);
         if (teamMatch) {
@@ -39,12 +82,12 @@ const WikiImportButton: React.FC = () => {
         return;
       }
 
-      // Parse Character Row: |[[aaa]]|男|6|14|7|3|0|スパゲッティ・コード|100|0||
+      // --- Parse Character Status Row ---
       if (line.startsWith('|') && line.endsWith('|')) {
         const cells = line.split('|').map(c => c.trim()).filter((_, i, arr) => i > 0 && i < arr.length - 1);
         
-        // Skip header rows
-        if (cells.length < 5 || cells[0].includes('名前') || cells[1].includes('性別')) return;
+        // Skip header rows and grid rows (which were handled above)
+        if (cells.length < 5 || cells[0].includes('名前') || cells[0].includes('BGCOLOR')) return;
 
         // Extract name
         const nameMatch = cells[0].match(/\[\[(.*?)\]\]/);
