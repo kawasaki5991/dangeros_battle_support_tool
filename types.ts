@@ -53,4 +53,5 @@ export type SyncPayload =
   | { type: 'UNIT_ADD', unit: Unit }
   | { type: 'MESSAGE_ADD', message: Message }
   | { type: 'DP_UPDATE', team: Team, dp: number }
-  | { type: 'USER_JOIN', handleName: string };
+  | { type: 'USER_JOIN', handleName: string }
+  | { type: 'USERS_UPDATE', users: string[] };
