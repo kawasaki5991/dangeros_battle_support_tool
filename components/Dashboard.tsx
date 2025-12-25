@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { DndContext, useSensor, useSensors, PointerSensor, DragEndEvent, DragOverlay, DragStartEvent } from '@dnd-kit/core';
 import { useStore } from '../store';
@@ -8,6 +7,7 @@ import CharacterForm from './CharacterForm';
 import UnplacedZone from './UnplacedZone';
 import StatusEditor from './StatusEditor';
 import UnitItem from './UnitItem';
+import WikiExportButton from './WikiExportButton';
 import { MessageSquare, Users, LogOut, LayoutDashboard, ChevronDown, Wifi, WifiOff } from 'lucide-react';
 import { Team } from '../types';
 
@@ -156,9 +156,12 @@ const Dashboard: React.FC = () => {
         </div>
 
         <div className="flex-1 flex flex-col overflow-hidden min-w-0">
-          <div className="flex-1 flex items-center justify-center overflow-auto custom-scrollbar bg-[radial-gradient(#fdba74_1px,transparent_1px)] [background-size:24px_24px] p-0">
+          <div className="flex-1 flex items-center justify-center overflow-auto custom-scrollbar bg-[radial-gradient(#fdba74_1px,transparent_1px)] [background-size:24px_24px] p-0 relative">
             <div className="w-full h-full flex items-center justify-center overflow-auto p-4 md:p-8">
               <Grid />
+            </div>
+            <div className="absolute bottom-6 left-6 z-10">
+              <WikiExportButton />
             </div>
           </div>
           <div className="bg-white border-t-4 border-orange-200 p-6 shadow-[0_-8px_30px_rgb(0,0,0,0.12)] overflow-hidden flex flex-col max-h-[45%]">
