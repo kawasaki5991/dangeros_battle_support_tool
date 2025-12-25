@@ -43,10 +43,10 @@ const WikiImportButton: React.FC = () => {
       if (line.startsWith('|') && line.endsWith('|')) {
         const cells = line.split('|').map(c => c.trim()).filter((_, i, arr) => i > 0 && i < arr.length - 1);
         
-        // Skip header rows (contain "名前" or "性別")
+        // Skip header rows
         if (cells.length < 5 || cells[0].includes('名前') || cells[1].includes('性別')) return;
 
-        // Extract name from [[name]]
+        // Extract name
         const nameMatch = cells[0].match(/\[\[(.*?)\]\]/);
         const name = nameMatch ? nameMatch[1] : cells[0];
         if (!name) return;
