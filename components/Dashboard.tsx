@@ -13,7 +13,7 @@ import { MessageSquare, Users, LogOut, LayoutDashboard, ChevronDown, Wifi, WifiO
 import { Team } from '../types';
 
 const Dashboard: React.FC = () => {
-  const { session, units, setUnits, updateUnit, setSession, users } = useStore();
+  const { session, units, setUnits, updateUnit, addUnit, setSession, users } = useStore();
   
   const [isPC, setIsPC] = useState(window.innerWidth > 768);
   const [isCreationOpen, setIsCreationOpen] = useState(isPC);
@@ -45,16 +45,21 @@ const Dashboard: React.FC = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  // 壁の自動生成ロジック
   useEffect(() => {
-    if (session.isHost && units.length === 0) {
-      const initialUnits = [
-        { id: 'wall-1', type: 'wall', name: '壁', pos_x: 3, pos_y: 0, is_dead: false, hp: 2, max_hp: 2, atk: 0, def: 0, mp: 0, max_mp: 0, fs_value: 0, room_id: session.roomId!, is_leader: false, is_secret: false, is_ability_rest: false },
-        { id: 'wall-2', type: 'wall', name: '壁', pos_x: 3, pos_y: 2, is_dead: false, hp: 2, max_hp: 2, atk: 0, def: 0, mp: 0, max_mp: 0, fs_value: 0, room_id: session.roomId!, is_leader: false, is_secret: false, is_ability_rest: false },
-        { id: 'wall-3', type: 'wall', name: '壁', pos_x: 3, pos_y: 4, is_dead: false, hp: 2, max_hp: 2, atk: 0, def: 0, mp: 0, max_mp: 0, fs_value: 0, room_id: session.roomId!, is_leader: false, is_secret: false, is_ability_rest: false },
-      ] as any;
-      setUnits(initialUnits);
+    if (session.isHost && session.roomId) {
+      const hasWalls = units.some(u => u.type === 'wall');
+      if (!hasWalls) {
+        console.log("Initializing default walls...");
+        const initialWalls = [
+          { id: 'wall-1', type: 'wall', name: '壁', pos_x: 3, pos_y: 0, is_dead: false, hp: 2, max_hp: 2, atk: 0, def: 0, mp: 0, max_mp: 0, fs_value: 0, room_id: session.roomId, is_leader: false, is_secret: false, is_ability_rest: false },
+          { id: 'wall-2', type: 'wall', name: '壁', pos_x: 3, pos_y: 2, is_dead: false, hp: 2, max_hp: 2, atk: 0, def: 0, mp: 0, max_mp: 0, fs_value: 0, room_id: session.roomId, is_leader: false, is_secret: false, is_ability_rest: false },
+          { id: 'wall-3', type: 'wall', name: '壁', pos_x: 3, pos_y: 4, is_dead: false, hp: 2, max_hp: 2, atk: 0, def: 0, mp: 0, max_mp: 0, fs_value: 0, room_id: session.roomId, is_leader: false, is_secret: false, is_ability_rest: false },
+        ];
+        initialWalls.forEach(w => addUnit(w as any));
+      }
     }
-  }, [session.isHost, session.roomId, units.length, setUnits]);
+  }, [session.isHost, session.roomId, units.length]); // units.lengthが変わるたびにチェック（壁が消された場合に復活させる）
 
   const handleDragStart = (event: DragStartEvent) => {
     setActiveId(event.active.id as string);
