@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useDroppable } from '@dnd-kit/core';
 import { useStore } from '../store';
@@ -5,7 +6,7 @@ import { Team } from '../types';
 import UnitItem from './UnitItem';
 
 const UnplacedZone: React.FC<{ team: Team }> = ({ team }) => {
-  const { units } = useStore();
+  const { units, activeDragId } = useStore();
   const teamUnits = units.filter((u) => u.team === team && u.pos_x === null);
   
   const { setNodeRef, isOver } = useDroppable({
@@ -31,7 +32,8 @@ const UnplacedZone: React.FC<{ team: Team }> = ({ team }) => {
       </div>
       <div 
         ref={setNodeRef}
-        className={`min-h-[100px] max-h-[220px] overflow-y-auto custom-scrollbar border-2 border-dashed rounded-xl p-3 flex flex-wrap gap-2 transition-all shadow-inner
+        className={`min-h-[100px] max-h-[220px] border-2 border-dashed rounded-xl p-3 flex flex-wrap gap-2 transition-all shadow-inner
+          ${activeDragId ? 'overflow-hidden touch-none' : 'overflow-y-auto custom-scrollbar'}
           ${isOver ? 'border-orange-500 bg-orange-100/50 scale-[1.02]' : `${colors.border} ${colors.bg}`}
         `}
       >
