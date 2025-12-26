@@ -12,8 +12,15 @@ const UnitItem: React.FC<{ unit: Unit }> = ({ unit }) => {
     ? {
         transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
         zIndex: 50,
+        WebkitTouchCallout: 'none' as const,
+        WebkitUserSelect: 'none' as const,
+        userSelect: 'none' as const,
       }
-    : undefined;
+    : {
+        WebkitTouchCallout: 'none' as const,
+        WebkitUserSelect: 'none' as const,
+        userSelect: 'none' as const,
+      };
 
   const isWall = unit.type === 'wall';
   const isDead = unit.is_dead || unit.hp <= 0;
@@ -47,10 +54,10 @@ const UnitItem: React.FC<{ unit: Unit }> = ({ unit }) => {
       className={`
         ${isDragging ? 'opacity-0' : 'opacity-100'}
         ${getTeamStyles()}
-        w-20 h-20 rounded-xl border-4 flex flex-col items-center justify-center p-1 cursor-grab active:cursor-grabbing shadow-lg transition-all hover:scale-105 hover:rotate-1 relative
+        w-20 h-20 rounded-xl border-4 flex flex-col items-center justify-center p-1 cursor-grab active:cursor-grabbing shadow-lg transition-all hover:scale-105 hover:rotate-1 relative select-none
       `}
     >
-      <div className={`text-[11px] font-black text-center leading-tight w-full px-0.5 ${isDead ? 'opacity-70' : ''}`}>
+      <div className={`text-[11px] font-black text-center leading-tight w-full px-0.5 select-none pointer-events-none ${isDead ? 'opacity-70' : ''}`}>
         {displayName}
       </div>
     </div>
