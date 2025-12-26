@@ -7,9 +7,10 @@ const ChatBoard: React.FC = () => {
   const [inputValue, setInputValue] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
 
+  // 表示順を反転させて最新を上にするため、スクロール位置の自動調整は「上端」へ（必要に応じて）
   useEffect(() => {
     if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+      scrollRef.current.scrollTop = 0;
     }
   }, [messages]);
 
@@ -49,7 +50,6 @@ const ChatBoard: React.FC = () => {
       const atk = parseInt(atkStr);
       const def = parseInt(defStr);
       const rawHitRate = (atk - def) * 5 + 50;
-      const hitRate = Math.min(100, Math.max(0, rawHitRate));
       const damage = Math.max(0, atk - def);
       
       // Automatic Dice Roll for Hit/Miss
@@ -86,6 +86,9 @@ const ChatBoard: React.FC = () => {
     setInputValue('');
   };
 
+  // メッセージ配列をコピーして反転させる（最新が0番目に来るようにする）
+  const reversedMessages = [...messages].reverse();
+
   return (
     <div className="flex-1 flex flex-col min-h-0 bg-slate-50">
       <form onSubmit={handleSend} className="p-5 border-b-2 border-orange-200 bg-white shadow-md z-10">
@@ -107,7 +110,7 @@ const ChatBoard: React.FC = () => {
       </form>
 
       <div ref={scrollRef} className="flex-1 overflow-y-auto p-5 space-y-6 custom-scrollbar">
-        {messages.map((msg) => (
+        {reversedMessages.map((msg) => (
           <div key={msg.id} className={`${msg.is_system ? 'bg-orange-950 text-orange-50 border-l-8 border-orange-500 p-4 rounded-r-2xl shadow-xl' : 'bg-white p-4 rounded-2xl shadow-sm border border-orange-100'}`}>
             <div className="flex justify-between items-baseline mb-2">
               <span className={`text-sm font-black ${msg.is_system ? 'text-orange-200' : 'text-orange-950'}`}>
