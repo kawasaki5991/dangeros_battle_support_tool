@@ -150,14 +150,16 @@ const Dashboard: React.FC = () => {
 
   const getSidebarClasses = () => {
     if (isPC) return (isCreationOpen || isUnplacedOpen) ? 'relative w-[400px] transition-all duration-300' : 'relative w-14 transition-all duration-300';
-    if (isCreationOpen) return 'fixed inset-y-0 left-0 w-full z-[60]';
+    // スマホ版: ヘッダー(h-14)の高さを避けるために top-14 を指定
+    if (isCreationOpen) return 'fixed top-14 inset-x-0 bottom-0 w-full z-[60]';
     if (isUnplacedOpen) return 'fixed inset-x-0 bottom-0 h-[35vh] w-full z-[60] rounded-t-3xl';
-    return 'fixed inset-y-0 left-0 w-0 z-[60] overflow-hidden translate-x-[-100%]';
+    return 'fixed top-14 left-0 w-0 bottom-0 z-[60] overflow-hidden translate-x-[-100%]';
   };
 
   return (
     <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-      <header className="bg-orange-800 border-b border-orange-950 h-14 md:h-16 flex items-center justify-between px-3 md:px-6 shrink-0 z-50 shadow-lg text-white">
+      {/* ヘッダーのz-indexを100に上げ、スマホでも最前面に固定 */}
+      <header className="bg-orange-800 border-b border-orange-950 h-14 md:h-16 flex items-center justify-between px-3 md:px-6 shrink-0 z-[100] shadow-lg text-white">
         <div className="flex items-center gap-2 md:gap-4 overflow-hidden">
           <h2 className="text-lg md:text-xl font-black tracking-tighter italic shrink-0">DANGEROS</h2>
           <div className="hidden sm:flex items-center gap-2 text-orange-200 text-xs md:text-sm border-l border-orange-600 pl-4 font-bold truncate">
@@ -311,8 +313,9 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
 
+        {/* チャット画面もスマホ版では top-14 を指定しヘッダーを表示 */}
         <div className={`
-          ${isPC ? 'w-[320px] md:w-[420px]' : 'fixed inset-0 z-[60] w-full'}
+          ${isPC ? 'w-[320px] md:w-[420px]' : 'fixed top-14 inset-x-0 bottom-0 z-[60] w-full'}
           bg-white flex flex-col shadow-2xl overflow-hidden shrink-0 transition-transform duration-300
           ${!isPC && !isMobileChatOpen ? 'translate-x-full' : 'translate-x-0'}
         `}>
