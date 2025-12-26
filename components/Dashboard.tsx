@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState, useRef } from 'react';
 import { DndContext, useSensor, useSensors, PointerSensor, TouchSensor, DragEndEvent, DragOverlay, DragStartEvent } from '@dnd-kit/core';
 import { useStore } from '../store';
@@ -14,14 +15,13 @@ import { MessageSquare, Users, LogOut, LayoutDashboard, ChevronDown, Menu, X, Li
 import { Team } from '../types';
 
 const Dashboard: React.FC = () => {
-  const { session, units, updateUnit, addUnit, deleteUnit, setSession, users } = useStore();
+  const { session, units, updateUnit, addUnit, deleteUnit, setSession, users, setActiveDragId, activeDragId } = useStore();
   
   const [isPC, setIsPC] = useState(window.innerWidth > 768);
   const [isCreationOpen, setIsCreationOpen] = useState(isPC);
   const [isUnplacedOpen, setIsUnplacedOpen] = useState(isPC);
   const [isStatusOpen, setIsStatusOpen] = useState(isPC); 
   const [isMobileChatOpen, setIsMobileChatOpen] = useState(false);
-  const [activeId, setActiveId] = useState<string | null>(null);
 
   // ズーム管理用
   const [zoomScale, setZoomScale] = useState(0.85);
@@ -107,12 +107,12 @@ const Dashboard: React.FC = () => {
   }, [session.isHost, session.roomId, units.length]);
 
   const handleDragStart = (event: DragStartEvent) => {
-    setActiveId(event.active.id as string);
+    setActiveDragId(event.active.id as string);
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
-    setActiveId(null);
+    setActiveDragId(null);
     if (!over) return;
 
     const unitId = active.id as string;
@@ -142,7 +142,7 @@ const Dashboard: React.FC = () => {
   };
 
   const teams: Team[] = ['生徒会', '番長G', '転校生', 'その他'];
-  const activeUnit = units.find(u => u.id === activeId);
+  const activeUnit = units.find(u => u.id === activeDragId);
 
   const closeMobileSidebars = () => {
     setIsCreationOpen(false);
@@ -150,7 +150,7 @@ const Dashboard: React.FC = () => {
   };
 
   const getSidebarClasses = () => {
-    if (isPC) return 'relative w-14 transition-all duration-300';
+    if (isPC) return (isCreationOpen || isUnplacedOpen) ? 'relative w-[400px] transition-all duration-300' : 'relative w-14 transition-all duration-300';
     if (isCreationOpen) return 'fixed inset-y-0 left-0 w-full z-[60]';
     if (isUnplacedOpen) return 'fixed inset-x-0 bottom-0 h-[35vh] w-full z-[60] rounded-t-3xl';
     return 'fixed inset-y-0 left-0 w-0 z-[60] overflow-hidden translate-x-[-100%]';
@@ -189,7 +189,7 @@ const Dashboard: React.FC = () => {
 
       <main className="flex-1 flex overflow-hidden bg-orange-100 relative h-[calc(100dvh-56px)] md:h-[calc(100dvh-64px)]">
         <div className={`
-          ${isPC ? (isCreationOpen || isUnplacedOpen ? 'w-[400px]' : 'w-14') : getSidebarClasses()}
+          ${getSidebarClasses()}
           transition-all duration-300 bg-white border-r border-orange-200 flex flex-col overflow-hidden shadow-2xl md:z-10
           ${!isPC && !isCreationOpen && isUnplacedOpen ? 'translate-y-0 translate-x-0' : ''}
           ${!isPC && isCreationOpen ? 'translate-x-0' : ''}
@@ -207,9 +207,9 @@ const Dashboard: React.FC = () => {
           <div className={`flex flex-col border-b border-orange-100 min-h-0 ${!isPC && !isCreationOpen ? 'hidden' : 'block'}`}>
             <button 
               onClick={() => setIsCreationOpen(!isCreationOpen)}
-              className={`flex items-center text-orange-950 font-black hover:bg-orange-50 transition-colors w-full h-14 shrink-0 ${(!isCreationOpen && isPC) ? 'justify-center p-0' : 'justify-between p-4'}`}
+              className={`flex items-center text-orange-950 font-black hover:bg-orange-50 transition-colors w-full h-14 shrink-0 ${(isPC && !isCreationOpen) ? 'justify-center' : 'justify-between px-4'}`}
             >
-              <div className={`flex items-center gap-3 truncate ${(!isCreationOpen && isPC) ? 'w-full justify-center flex' : 'flex'}`}>
+              <div className={`flex items-center gap-3 truncate ${(isPC && !isCreationOpen) ? 'w-full justify-center' : ''}`}>
                 <Users size={24} className="text-orange-700 shrink-0" /> 
                 {(isCreationOpen || !isPC) && <span className="text-lg">キャラクター作成</span>}
               </div>
@@ -224,16 +224,16 @@ const Dashboard: React.FC = () => {
           <div className={`flex-1 flex flex-col min-h-0 overflow-hidden ${!isPC && !isUnplacedOpen ? 'hidden' : 'block'}`}>
             <button 
               onClick={() => setIsUnplacedOpen(!isUnplacedOpen)}
-              className={`flex items-center text-orange-950 font-black hover:bg-orange-50 transition-colors w-full h-14 shrink-0 ${(!isUnplacedOpen && isPC) ? 'justify-center p-0' : 'justify-between p-4'}`}
+              className={`flex items-center text-orange-950 font-black hover:bg-orange-50 transition-colors w-full h-14 shrink-0 ${(isPC && !isUnplacedOpen) ? 'justify-center' : 'justify-between px-4'}`}
             >
-              <div className={`flex items-center gap-3 truncate ${(!isUnplacedOpen && isPC) ? 'w-full justify-center flex' : 'flex'}`}>
+              <div className={`flex items-center gap-3 truncate ${(isPC && !isUnplacedOpen) ? 'w-full justify-center' : ''}`}>
                 <LayoutDashboard size={24} className="text-orange-700 shrink-0" />
                 {(isUnplacedOpen || !isPC) && <span className="text-lg">未配置エリア</span>}
               </div>
               {isUnplacedOpen && <ChevronDown size={20} className={`${!isPC ? 'hidden' : 'block'}`} />}
             </button>
-            {/* ドラッグ中はスクロールを無効化 (activeIdがある時のみ overflow-hidden) */}
-            <div className={`flex-1 transition-all duration-300 ${isUnplacedOpen ? 'p-5 pt-0 opacity-100' : 'opacity-0 max-h-0 p-0 overflow-hidden'} ${(!isPC && activeId) ? 'overflow-hidden touch-none' : 'overflow-y-auto custom-scrollbar'}`}>
+            {/* ドラッグ中はスクロールを無効化 (activeDragIdがある時のみ overflow-hidden) */}
+            <div className={`flex-1 transition-all duration-300 ${isUnplacedOpen ? 'p-5 pt-0 opacity-100' : 'opacity-0 max-h-0 p-0 overflow-hidden'} ${(!isPC && activeDragId) ? 'overflow-hidden touch-none pointer-events-none' : 'overflow-y-auto custom-scrollbar'}`}>
               <div className="space-y-6">
                 {teams.map(team => (
                   <UnplacedZone key={team} team={team} />
