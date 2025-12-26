@@ -20,6 +20,7 @@ const Dashboard: React.FC = () => {
   const [isCreationOpen, setIsCreationOpen] = useState(isPC);
   const [isUnplacedOpen, setIsUnplacedOpen] = useState(isPC);
   const [isStatusOpen, setIsStatusOpen] = useState(true);
+  const [isMobileChatOpen, setIsMobileChatOpen] = useState(false);
   const [activeId, setActiveId] = useState<string | null>(null);
 
   const sensors = useSensors(
@@ -203,6 +204,12 @@ const Dashboard: React.FC = () => {
               >
                 <List size={24} />
               </button>
+              <button 
+                onClick={() => setIsMobileChatOpen(true)}
+                className="bg-orange-700 text-white p-3 rounded-full shadow-lg active:scale-90"
+              >
+                <MessageSquare size={24} />
+              </button>
             </div>
           </div>
           
@@ -225,40 +232,32 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* Right Sidebar (Fixed Chat) */}
+        {/* Right Sidebar (Persistent Chat on PC) */}
         <div className={`
-          ${isPC ? 'w-[320px] md:w-[420px]' : 'fixed inset-0 z-40 w-full'}
-          transition-all duration-300 bg-white flex flex-col shadow-2xl overflow-hidden shrink-0
-          ${!isPC && 'hidden'} /* On mobile it's hidden by default or we'd need a separate toggle, but user said remove folding. We'll keep it visible on PC and provide a simple toggle for mobile if needed, or just keep it open. */
+          ${isPC ? 'w-[320px] md:w-[420px]' : 'fixed inset-0 z-[60] w-full'}
+          bg-white flex flex-col shadow-2xl overflow-hidden shrink-0 transition-transform duration-300
+          ${!isPC && !isMobileChatOpen ? 'translate-x-full' : 'translate-x-0'}
         `}>
           <div className="bg-orange-50 border-b border-orange-100 flex items-center justify-between p-4 h-14 shrink-0">
             <div className="flex items-center gap-3">
               <MessageSquare size={24} className="text-orange-700 shrink-0" />
               <span className="text-lg font-black text-orange-950">チャットログ</span>
             </div>
+            {!isPC && (
+              <button onClick={() => setIsMobileChatOpen(false)} className="p-2 text-orange-800"><X size={24}/></button>
+            )}
           </div>
           <div className="flex-1 flex flex-col overflow-hidden">
             <ChatBoard />
           </div>
         </div>
-
-        {/* Mobile Chat Button (since folding is removed, we still need a way to see it on mobile if it's hidden) */}
-        {!isPC && (
-           <button 
-            onClick={() => { /* On mobile we could implement a full screen modal for chat if folding is 'removed' in sense of layout */ }}
-            className="fixed top-20 right-4 bg-orange-700 text-white p-3 rounded-full shadow-lg z-50 md:hidden"
-            style={{ display: 'none' }} // Prompt says remove folding. On mobile, permanently open chat is unusable, so we hide it or user accepts it's desktop-first now.
-          >
-            <MessageSquare size={24} />
-          </button>
-        )}
       </main>
 
       {/* Mobile Overlay Backdrop */}
-      {((!isLeftCollapsed || (!isPC && isStatusOpen)) && !isPC) && (
+      {((!isLeftCollapsed || (!isPC && (isStatusOpen || isMobileChatOpen))) && !isPC) && (
         <div 
           className="fixed inset-0 bg-black/30 z-30" 
-          onClick={() => { setIsCreationOpen(false); setIsUnplacedOpen(false); setIsStatusOpen(false); }}
+          onClick={() => { setIsCreationOpen(false); setIsUnplacedOpen(false); setIsStatusOpen(false); setIsMobileChatOpen(false); }}
         />
       )}
 
