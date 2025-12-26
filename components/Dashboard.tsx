@@ -258,7 +258,7 @@ const Dashboard: React.FC = () => {
             bg-white border-t-2 md:border-t-4 border-orange-200 shadow-[0_-8px_30px_rgb(0,0,0,0.12)] transition-all duration-300 overflow-hidden flex flex-col
             ${isPC 
               ? `min-h-[400px] max-h-[50%]` 
-              : `fixed inset-x-0 bottom-0 z-40 rounded-t-3xl ${isStatusOpen ? 'h-[80vh]' : 'h-0 translate-y-full'}`
+              : `fixed inset-x-0 bottom-0 z-[60] rounded-t-3xl ${isStatusOpen ? 'h-[80vh]' : 'h-0 translate-y-full'}`
             }
           `}>
             {!isPC && (
