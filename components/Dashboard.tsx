@@ -143,7 +143,6 @@ const Dashboard: React.FC = () => {
 
   const teams: Team[] = ['生徒会', '番長G', '転校生', 'その他'];
   const activeUnit = units.find(u => u.id === activeId);
-  const isLeftCollapsed = !isCreationOpen && !isUnplacedOpen;
 
   const closeMobileSidebars = () => {
     setIsCreationOpen(false);
@@ -151,7 +150,7 @@ const Dashboard: React.FC = () => {
   };
 
   const getSidebarClasses = () => {
-    if (isPC) return 'relative w-0 md:w-14 transition-all duration-300';
+    if (isPC) return 'relative w-14 transition-all duration-300';
     if (isCreationOpen) return 'fixed inset-y-0 left-0 w-full z-[60]';
     if (isUnplacedOpen) return 'fixed inset-x-0 bottom-0 h-[35vh] w-full z-[60] rounded-t-3xl';
     return 'fixed inset-y-0 left-0 w-0 z-[60] overflow-hidden translate-x-[-100%]';
@@ -190,12 +189,12 @@ const Dashboard: React.FC = () => {
 
       <main className="flex-1 flex overflow-hidden bg-orange-100 relative h-[calc(100dvh-56px)] md:h-[calc(100dvh-64px)]">
         <div className={`
-          ${isPC ? (isLeftCollapsed ? 'w-14' : 'w-[400px]') : getSidebarClasses()}
+          ${isPC ? (isCreationOpen || isUnplacedOpen ? 'w-[400px]' : 'w-14') : getSidebarClasses()}
           transition-all duration-300 bg-white border-r border-orange-200 flex flex-col overflow-hidden shadow-2xl md:z-10
           ${!isPC && !isCreationOpen && isUnplacedOpen ? 'translate-y-0 translate-x-0' : ''}
           ${!isPC && isCreationOpen ? 'translate-x-0' : ''}
         `}>
-          {!isPC && !isLeftCollapsed && (
+          {!isPC && (isCreationOpen || isUnplacedOpen) && (
             <button 
               onClick={closeMobileSidebars}
               className="absolute top-4 right-4 z-[70] p-2 bg-orange-100 text-orange-900 rounded-full shadow-lg border-2 border-orange-200 active:scale-90"
@@ -204,34 +203,37 @@ const Dashboard: React.FC = () => {
             </button>
           )}
 
+          {/* キャラクター作成欄 */}
           <div className={`flex flex-col border-b border-orange-100 min-h-0 ${!isPC && !isCreationOpen ? 'hidden' : 'block'}`}>
             <button 
               onClick={() => setIsCreationOpen(!isCreationOpen)}
-              className={`flex items-center text-orange-950 font-black hover:bg-orange-50 transition-colors w-full h-14 ${!isCreationOpen ? 'justify-center p-0' : 'justify-between p-4'}`}
+              className={`flex items-center text-orange-950 font-black hover:bg-orange-50 transition-colors w-full h-14 shrink-0 ${(!isCreationOpen && isPC) ? 'justify-center p-0' : 'justify-between p-4'}`}
             >
-              <div className={`flex items-center gap-3 truncate ${!isCreationOpen ? 'w-full justify-center flex' : 'flex'}`}>
+              <div className={`flex items-center gap-3 truncate ${(!isCreationOpen && isPC) ? 'w-full justify-center flex' : 'flex'}`}>
                 <Users size={24} className="text-orange-700 shrink-0" /> 
-                {(isPC || isCreationOpen) && <span className="text-lg">キャラクター作成</span>}
+                {(isCreationOpen || !isPC) && <span className="text-lg">キャラクター作成</span>}
               </div>
               {isCreationOpen && <ChevronDown size={20} className={`${!isPC ? 'hidden' : 'block'}`} />}
             </button>
-            <div className={`overflow-y-auto transition-all duration-300 ${isCreationOpen ? 'max-h-[80vh] md:max-h-[800px] p-5 pt-0 opacity-100' : 'max-h-0 opacity-0'}`}>
+            <div className={`overflow-y-auto transition-all duration-300 ${isCreationOpen ? 'max-h-[80vh] md:max-h-[800px] p-5 pt-0 opacity-100' : 'max-h-0 opacity-0 overflow-hidden'}`}>
               <CharacterForm />
             </div>
           </div>
 
+          {/* 未配置エリア欄 */}
           <div className={`flex-1 flex flex-col min-h-0 overflow-hidden ${!isPC && !isUnplacedOpen ? 'hidden' : 'block'}`}>
             <button 
               onClick={() => setIsUnplacedOpen(!isUnplacedOpen)}
-              className={`flex items-center text-orange-950 font-black hover:bg-orange-50 transition-colors w-full h-14 ${!isUnplacedOpen ? 'justify-center p-0' : 'justify-between p-4'}`}
+              className={`flex items-center text-orange-950 font-black hover:bg-orange-50 transition-colors w-full h-14 shrink-0 ${(!isUnplacedOpen && isPC) ? 'justify-center p-0' : 'justify-between p-4'}`}
             >
-              <div className={`flex items-center gap-3 truncate ${!isUnplacedOpen ? 'w-full justify-center flex' : 'flex'}`}>
+              <div className={`flex items-center gap-3 truncate ${(!isUnplacedOpen && isPC) ? 'w-full justify-center flex' : 'flex'}`}>
                 <LayoutDashboard size={24} className="text-orange-700 shrink-0" />
-                {(isPC || isUnplacedOpen) && <span className="text-lg">未配置エリア</span>}
+                {(isUnplacedOpen || !isPC) && <span className="text-lg">未配置エリア</span>}
               </div>
               {isUnplacedOpen && <ChevronDown size={20} className={`${!isPC ? 'hidden' : 'block'}`} />}
             </button>
-            <div className={`flex-1 overflow-y-auto custom-scrollbar transition-all duration-300 ${isUnplacedOpen ? 'p-5 pt-0 opacity-100' : 'opacity-0 max-h-0 p-0'}`}>
+            {/* ドラッグ中はスクロールを無効化 (activeIdがある時のみ overflow-hidden) */}
+            <div className={`flex-1 transition-all duration-300 ${isUnplacedOpen ? 'p-5 pt-0 opacity-100' : 'opacity-0 max-h-0 p-0 overflow-hidden'} ${(!isPC && activeId) ? 'overflow-hidden touch-none' : 'overflow-y-auto custom-scrollbar'}`}>
               <div className="space-y-6">
                 {teams.map(team => (
                   <UnplacedZone key={team} team={team} />
@@ -329,7 +331,7 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
 
-        {((!isPC && (isCreationOpen || (isUnplacedOpen && !isPC && false) || isStatusOpen || isMobileChatOpen))) && !isPC && (
+        {((!isPC && (isCreationOpen || isUnplacedOpen || isStatusOpen || isMobileChatOpen))) && !isPC && (
           <div 
             className="fixed inset-0 bg-black/30 z-[55]" 
             onClick={() => { closeMobileSidebars(); setIsStatusOpen(false); setIsMobileChatOpen(false); }}
