@@ -1,4 +1,3 @@
-
 import { create } from 'zustand';
 import { Unit, Message, UserSession, Team, SyncPayload } from './types';
 
@@ -8,12 +7,14 @@ interface DangerosState {
   messages: Message[];
   users: string[];
   teamDP: Record<Team, number>;
+  activeDragId: string | null;
   
   // Actions
   setSession: (session: Partial<UserSession>) => void;
   setUnits: (units: Unit[]) => void;
   setMessages: (messages: Message[]) => void;
   setUsers: (users: string[]) => void;
+  setActiveDragId: (id: string | null) => void;
   
   // Local Actions (Trigger Sync)
   addMessage: (message: Message, remote?: boolean) => void;
@@ -41,6 +42,7 @@ export const useStore = create<DangerosState>((set, get) => ({
   units: [],
   messages: [],
   users: [],
+  activeDragId: null,
   teamDP: {
     '生徒会': 0,
     '番長G': 0,
@@ -54,6 +56,7 @@ export const useStore = create<DangerosState>((set, get) => ({
   setUnits: (units) => set({ units }),
   setMessages: (messages) => set({ messages }),
   setUsers: (users) => set({ users }),
+  setActiveDragId: (id) => set({ activeDragId: id }),
 
   broadcast: (payload) => {
     if (broadcastHandler) broadcastHandler(payload);
