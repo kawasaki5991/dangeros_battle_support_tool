@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { DndContext, useSensor, useSensors, PointerSensor, TouchSensor, DragEndEvent, DragOverlay, DragStartEvent } from '@dnd-kit/core';
 import { useStore } from '../store';
 import Grid from './Grid';
@@ -23,6 +23,12 @@ const Dashboard: React.FC = () => {
   const [isMobileChatOpen, setIsMobileChatOpen] = useState(false);
   const [activeId, setActiveId] = useState<string | null>(null);
 
+  // ズーム管理用
+  const [zoomScale, setZoomScale] = useState(0.85);
+  const [isPinching, setIsPinching] = useState(false);
+  const touchStartDistRef = useRef<number>(0);
+  const touchStartScaleRef = useRef<number>(0.85);
+
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -32,7 +38,7 @@ const Dashboard: React.FC = () => {
     useSensor(TouchSensor, {
       activationConstraint: {
         delay: 500, // 0.5秒の長押しで移動開始
-        tolerance: 15, // 長押し中の指のわずかなズレを許容（移動キャンセル防止）
+        tolerance: 15, // 長押し中の指のわずかなズレを許容
       },
     })
   );
@@ -45,11 +51,46 @@ const Dashboard: React.FC = () => {
         setIsCreationOpen(true);
         setIsUnplacedOpen(true);
         setIsStatusOpen(true);
+        setZoomScale(1.0);
+      } else {
+        setZoomScale(0.85);
       }
     };
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
+
+  // ピンチズーム用ハンドラ
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (isPC) return;
+    if (e.touches.length === 2) {
+      setIsPinching(true);
+      const dist = Math.hypot(
+        e.touches[0].pageX - e.touches[1].pageX,
+        e.touches[0].pageY - e.touches[1].pageY
+      );
+      touchStartDistRef.current = dist;
+      touchStartScaleRef.current = zoomScale;
+    }
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (isPC || !isPinching) return;
+    if (e.touches.length === 2) {
+      const dist = Math.hypot(
+        e.touches[0].pageX - e.touches[1].pageX,
+        e.touches[0].pageY - e.touches[1].pageY
+      );
+      
+      const factor = dist / touchStartDistRef.current;
+      const newScale = Math.min(Math.max(touchStartScaleRef.current * factor, 0.5), 2.0);
+      setZoomScale(newScale);
+    }
+  };
+
+  const handleTouchEnd = () => {
+    setIsPinching(false);
+  };
 
   useEffect(() => {
     if (session.isHost && session.roomId) {
@@ -202,9 +243,17 @@ const Dashboard: React.FC = () => {
         </div>
 
         <div className="flex-1 flex flex-col overflow-hidden min-w-0 border-r border-orange-200">
-          <div className="flex-1 overflow-auto custom-scrollbar bg-[radial-gradient(#fdba74_1px,transparent_1px)] [background-size:24px_24px] p-0 relative touch-pan-x touch-pan-y">
+          <div 
+            className="flex-1 overflow-auto custom-scrollbar bg-[radial-gradient(#fdba74_1px,transparent_1px)] [background-size:24px_24px] p-0 relative touch-pan-x touch-pan-y"
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+          >
             <div className="min-w-max min-h-full flex p-4 md:p-12">
-               <div className="m-auto transform transition-transform duration-300 origin-center scale-[0.85] lg:scale-100">
+               <div 
+                 className={`m-auto transform origin-center ${isPC ? 'lg:scale-100' : ''} ${!isPinching && !isPC ? 'transition-transform duration-300' : ''}`}
+                 style={!isPC ? { transform: `scale(${zoomScale})` } : {}}
+               >
                  <Grid />
                </div>
             </div>
