@@ -48,10 +48,18 @@ const ChatBoard: React.FC = () => {
     resultText = resultText.replace(attackRegex, (match, atkStr, defStr) => {
       const atk = parseInt(atkStr);
       const def = parseInt(defStr);
-      const hitRate = Math.min(100, Math.max(0, (atk - def) * 5 + 50));
+      const rawHitRate = (atk - def) * 5 + 50;
+      const hitRate = Math.min(100, Math.max(0, rawHitRate));
       const damage = Math.max(0, atk - def);
+      
+      // Automatic Dice Roll for Hit/Miss
+      const roll = Math.floor(Math.random() * 100) + 1;
+      const isHit = roll <= rawHitRate; // Use raw rate to allow 100%+ hits
+      const resultIcon = isHit ? '⭕ 命中！' : '❌ 回避...';
+      const resultDetail = `(判定: ${roll} ➔ ${isHit ? '成功' : '失敗'})`;
+      
       isSystem = true; 
-      return ` 通常攻撃：${atk} 攻撃 vs ${def} 防御 ➔ 命中率: ${hitRate}% / ダメージ: ${damage} `;
+      return ` 通常攻撃：${atk} 攻撃 vs ${def} 防御 ➔ ${resultIcon} ${resultDetail} [命中率: ${rawHitRate}% / ダメージ: ${damage}] `;
     });
 
     if (hasDice) isSystem = true;
