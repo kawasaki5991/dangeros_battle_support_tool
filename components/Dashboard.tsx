@@ -31,8 +31,8 @@ const Dashboard: React.FC = () => {
     }),
     useSensor(TouchSensor, {
       activationConstraint: {
-        delay: 150, 
-        tolerance: 8,
+        delay: 500, // 0.5秒の長押しで移動開始
+        tolerance: 15, // 長押し中の指のわずかなズレを許容（移動キャンセル防止）
       },
     })
   );
