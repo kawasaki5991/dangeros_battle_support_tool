@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useDraggable } from '@dnd-kit/core';
 import { Unit } from '../types';
@@ -15,11 +16,13 @@ const UnitItem: React.FC<{ unit: Unit }> = ({ unit }) => {
         WebkitTouchCallout: 'none' as const,
         WebkitUserSelect: 'none' as const,
         userSelect: 'none' as const,
+        touchAction: 'none' as const, // ブラウザのデフォルトスクロールを防止
       }
     : {
         WebkitTouchCallout: 'none' as const,
         WebkitUserSelect: 'none' as const,
         userSelect: 'none' as const,
+        touchAction: 'none' as const, // ブラウザのデフォルトスクロールを防止
       };
 
   const isWall = unit.type === 'wall';
@@ -54,7 +57,7 @@ const UnitItem: React.FC<{ unit: Unit }> = ({ unit }) => {
       className={`
         ${isDragging ? 'opacity-0' : 'opacity-100'}
         ${getTeamStyles()}
-        w-20 h-20 rounded-xl border-4 flex flex-col items-center justify-center p-1 cursor-grab active:cursor-grabbing shadow-lg transition-all hover:scale-105 hover:rotate-1 relative select-none
+        w-20 h-20 rounded-xl border-4 flex flex-col items-center justify-center p-1 cursor-grab active:cursor-grabbing shadow-lg transition-all hover:scale-105 hover:rotate-1 relative select-none touch-none
       `}
     >
       <div className={`text-[11px] font-black text-center leading-tight w-full px-0.5 select-none pointer-events-none ${isDead ? 'opacity-70' : ''}`}>
