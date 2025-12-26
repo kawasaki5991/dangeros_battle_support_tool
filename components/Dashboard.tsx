@@ -144,16 +144,16 @@ const Dashboard: React.FC = () => {
       <main className="flex-1 flex overflow-hidden bg-orange-100 relative h-[calc(100dvh-56px)] md:h-[calc(100dvh-64px)]">
         {/* Left Sidebar */}
         <div className={`
-          fixed md:relative inset-y-0 left-0 z-40 md:z-10
+          fixed md:relative inset-y-0 left-0 z-[60] md:z-10
           ${!isLeftCollapsed ? 'w-full sm:w-[320px] md:w-[400px]' : 'w-0 md:w-14'}
           transition-all duration-300 bg-white border-r border-orange-200 flex flex-col overflow-hidden shadow-2xl
           ${isLeftCollapsed && 'translate-x-[-100%] md:translate-x-0'}
         `}>
-          {/* Mobile Close Button for Sidebar */}
+          {/* Mobile Close Button for Sidebar (Adjusted position and z-index) */}
           {!isPC && !isLeftCollapsed && (
             <button 
               onClick={closeMobileSidebars}
-              className="absolute top-2 right-2 z-50 p-2 bg-orange-100 text-orange-900 rounded-full shadow-md"
+              className="absolute top-4 right-4 z-[70] p-2 bg-orange-100 text-orange-900 rounded-full shadow-lg border-2 border-orange-200 active:scale-90 transition-transform"
             >
               <X size={24} />
             </button>
@@ -273,10 +273,10 @@ const Dashboard: React.FC = () => {
         </div>
       </main>
 
-      {/* Mobile Overlay Backdrop */}
+      {/* Mobile Overlay Backdrop (Adjusted z-index) */}
       {((!isLeftCollapsed || (!isPC && (isStatusOpen || isMobileChatOpen))) && !isPC) && (
         <div 
-          className="fixed inset-0 bg-black/30 z-30" 
+          className="fixed inset-0 bg-black/30 z-[55]" 
           onClick={() => { closeMobileSidebars(); setIsStatusOpen(false); setIsMobileChatOpen(false); }}
         />
       )}
