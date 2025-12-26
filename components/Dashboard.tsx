@@ -19,11 +19,10 @@ const Dashboard: React.FC = () => {
   const [isPC, setIsPC] = useState(window.innerWidth > 768);
   const [isCreationOpen, setIsCreationOpen] = useState(isPC);
   const [isUnplacedOpen, setIsUnplacedOpen] = useState(isPC);
-  const [isStatusOpen, setIsStatusOpen] = useState(isPC); // PCは開く、スマホは閉じる
+  const [isStatusOpen, setIsStatusOpen] = useState(isPC); 
   const [isMobileChatOpen, setIsMobileChatOpen] = useState(false);
   const [activeId, setActiveId] = useState<string | null>(null);
 
-  // センサー設定: PC用のポインターと、スマホ用のタッチ（長押し）を追加
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -32,8 +31,8 @@ const Dashboard: React.FC = () => {
     }),
     useSensor(TouchSensor, {
       activationConstraint: {
-        delay: 250, // 250ms長押しで掴む
-        tolerance: 5, // 指が5px以上動いたらキャンセル
+        delay: 150, // 250msから150msに短縮し反応を向上
+        tolerance: 8, // 許容範囲を少し広げて誤操作を防止
       },
     })
   );
@@ -110,6 +109,20 @@ const Dashboard: React.FC = () => {
     setIsUnplacedOpen(false);
   };
 
+  // スマホ版のサイドバー表示ロジック
+  const getSidebarClasses = () => {
+    if (isPC) return 'relative w-0 md:w-14 transition-all duration-300';
+    
+    // キャラ作成が開いている場合は全画面（または従来の挙動）
+    if (isCreationOpen) return 'fixed inset-y-0 left-0 w-full z-[60]';
+    
+    // 未配置のみ開いている場合は下部35%
+    if (isUnplacedOpen) return 'fixed inset-x-0 bottom-0 h-[35vh] w-full z-[60] rounded-t-3xl';
+    
+    // 閉じている場合
+    return 'fixed inset-y-0 left-0 w-0 z-[60] overflow-hidden translate-x-[-100%]';
+  };
+
   return (
     <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
       <header className="bg-orange-800 border-b border-orange-950 h-14 md:h-16 flex items-center justify-between px-3 md:px-6 shrink-0 z-50 shadow-lg text-white">
@@ -142,31 +155,32 @@ const Dashboard: React.FC = () => {
       </header>
 
       <main className="flex-1 flex overflow-hidden bg-orange-100 relative h-[calc(100dvh-56px)] md:h-[calc(100dvh-64px)]">
-        {/* Left Sidebar */}
+        {/* Sidebar Container */}
         <div className={`
-          fixed md:relative inset-y-0 left-0 z-[60] md:z-10
-          ${!isLeftCollapsed ? 'w-full sm:w-[320px] md:w-[400px]' : 'w-0 md:w-14'}
-          transition-all duration-300 bg-white border-r border-orange-200 flex flex-col overflow-hidden shadow-2xl
-          ${isLeftCollapsed && 'translate-x-[-100%] md:translate-x-0'}
+          ${isPC ? (isLeftCollapsed ? 'w-14' : 'w-[400px]') : getSidebarClasses()}
+          transition-all duration-300 bg-white border-r border-orange-200 flex flex-col overflow-hidden shadow-2xl md:z-10
+          ${!isPC && !isCreationOpen && isUnplacedOpen ? 'translate-y-0 translate-x-0' : ''}
+          ${!isPC && isCreationOpen ? 'translate-x-0' : ''}
         `}>
-          {/* Mobile Close Button for Sidebar (Adjusted position and z-index) */}
+          {/* Mobile Close Button */}
           {!isPC && !isLeftCollapsed && (
             <button 
               onClick={closeMobileSidebars}
-              className="absolute top-4 right-4 z-[70] p-2 bg-orange-100 text-orange-900 rounded-full shadow-lg border-2 border-orange-200 active:scale-90 transition-transform"
+              className="absolute top-4 right-4 z-[70] p-2 bg-orange-100 text-orange-900 rounded-full shadow-lg border-2 border-orange-200 active:scale-90"
             >
               <X size={24} />
             </button>
           )}
 
-          <div className="flex flex-col border-b border-orange-100 min-h-0">
+          {/* キャラ作成欄: PCでは常に表示、モバイルでは開いている時のみ上部に */}
+          <div className={`flex flex-col border-b border-orange-100 min-h-0 ${!isPC && !isCreationOpen ? 'hidden' : 'block'}`}>
             <button 
               onClick={() => setIsCreationOpen(!isCreationOpen)}
               className={`flex items-center text-orange-950 font-black hover:bg-orange-50 transition-colors w-full h-14 ${!isCreationOpen ? 'justify-center p-0' : 'justify-between p-4'}`}
             >
               <div className={`flex items-center gap-3 truncate ${!isCreationOpen ? 'w-full justify-center flex' : 'flex'}`}>
                 <Users size={24} className="text-orange-700 shrink-0" /> 
-                {isCreationOpen && <span className="text-lg">キャラクター作成</span>}
+                {(isPC || isCreationOpen) && <span className="text-lg">キャラクター作成</span>}
               </div>
               {isCreationOpen && <ChevronDown size={20} className={`${!isPC ? 'hidden' : 'block'}`} />}
             </button>
@@ -175,14 +189,15 @@ const Dashboard: React.FC = () => {
             </div>
           </div>
 
-          <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
+          {/* 未配置エリア: PCでは常に表示、モバイルではisUnplacedOpenの時のみ */}
+          <div className={`flex-1 flex flex-col min-h-0 overflow-hidden ${!isPC && !isUnplacedOpen ? 'hidden' : 'block'}`}>
             <button 
               onClick={() => setIsUnplacedOpen(!isUnplacedOpen)}
               className={`flex items-center text-orange-950 font-black hover:bg-orange-50 transition-colors w-full h-14 ${!isUnplacedOpen ? 'justify-center p-0' : 'justify-between p-4'}`}
             >
               <div className={`flex items-center gap-3 truncate ${!isUnplacedOpen ? 'w-full justify-center flex' : 'flex'}`}>
                 <LayoutDashboard size={24} className="text-orange-700 shrink-0" />
-                {isUnplacedOpen && <span className="text-lg">未配置エリア</span>}
+                {(isPC || isUnplacedOpen) && <span className="text-lg">未配置エリア</span>}
               </div>
               {isUnplacedOpen && <ChevronDown size={20} className={`${!isPC ? 'hidden' : 'block'}`} />}
             </button>
@@ -210,10 +225,16 @@ const Dashboard: React.FC = () => {
               <WikiExportButton />
               <WikiImportButton />
               <button 
-                onClick={() => {setIsCreationOpen(true); setIsUnplacedOpen(true)}}
+                onClick={() => {setIsCreationOpen(false); setIsUnplacedOpen(true)}}
                 className="md:hidden bg-orange-800 text-white p-3 rounded-full shadow-lg active:scale-90"
               >
-                <Menu size={24} />
+                <LayoutDashboard size={24} />
+              </button>
+              <button 
+                onClick={() => {setIsCreationOpen(true); setIsUnplacedOpen(false)}}
+                className="md:hidden bg-orange-700 text-white p-3 rounded-full shadow-lg active:scale-90"
+              >
+                <Users size={24} />
               </button>
             </div>
             
@@ -273,8 +294,8 @@ const Dashboard: React.FC = () => {
         </div>
       </main>
 
-      {/* Mobile Overlay Backdrop (Adjusted z-index) */}
-      {((!isLeftCollapsed || (!isPC && (isStatusOpen || isMobileChatOpen))) && !isPC) && (
+      {/* Mobile Overlay Backdrop (Modified z-index and click-to-close) */}
+      {((!isPC && (isCreationOpen || (isUnplacedOpen && !isPC && false) || isStatusOpen || isMobileChatOpen))) && !isPC && (
         <div 
           className="fixed inset-0 bg-black/30 z-[55]" 
           onClick={() => { closeMobileSidebars(); setIsStatusOpen(false); setIsMobileChatOpen(false); }}
