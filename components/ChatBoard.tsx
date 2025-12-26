@@ -53,10 +53,11 @@ const ChatBoard: React.FC = () => {
       const damage = Math.max(0, atk - def);
       
       // Automatic Dice Roll for Hit/Miss
+      // 命中率が75％の時は、1D100を振り、75以下の数が出れば判定成功
       const roll = Math.floor(Math.random() * 100) + 1;
-      const isHit = roll <= rawHitRate; // Use raw rate to allow 100%+ hits
+      const isHit = roll <= rawHitRate; 
       const resultIcon = isHit ? '⭕ 命中！' : '❌ 回避...';
-      const resultDetail = `(判定: ${roll} ➔ ${isHit ? '成功' : '失敗'})`;
+      const resultDetail = `(判定値: ${roll} ➔ ${isHit ? '成功' : '失敗'})`;
       
       isSystem = true; 
       return ` 通常攻撃：${atk} 攻撃 vs ${def} 防御 ➔ ${resultIcon} ${resultDetail} [命中率: ${rawHitRate}% / ダメージ: ${damage}] `;
