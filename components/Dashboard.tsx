@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState, useRef } from 'react';
 import { DndContext, useSensor, useSensors, PointerSensor, TouchSensor, DragEndEvent, DragOverlay, DragStartEvent } from '@dnd-kit/core';
 import { useStore } from '../store';
@@ -232,7 +231,7 @@ const Dashboard: React.FC = () => {
               </div>
               {isUnplacedOpen && <ChevronDown size={20} className={`${!isPC ? 'hidden' : 'block'}`} />}
             </button>
-            {/* ドラッグ中はスクロールを無効化 (activeDragIdがある時のみ overflow-hidden) */}
+            {/* スマホ版ドラッグ中はスクロールを無効化 */}
             <div className={`flex-1 transition-all duration-300 ${isUnplacedOpen ? 'p-5 pt-0 opacity-100' : 'opacity-0 max-h-0 p-0 overflow-hidden'} ${(!isPC && activeDragId) ? 'overflow-hidden touch-none pointer-events-none' : 'overflow-y-auto custom-scrollbar'}`}>
               <div className="space-y-6">
                 {teams.map(team => (
