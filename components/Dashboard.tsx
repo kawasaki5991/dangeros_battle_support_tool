@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { DndContext, useSensor, useSensors, PointerSensor, DragEndEvent, DragOverlay, DragStartEvent } from '@dnd-kit/core';
+import { DndContext, useSensor, useSensors, PointerSensor, TouchSensor, DragEndEvent, DragOverlay, DragStartEvent } from '@dnd-kit/core';
 import { useStore } from '../store';
 import Grid from './Grid';
 import ChatBoard from './ChatBoard';
@@ -19,14 +19,21 @@ const Dashboard: React.FC = () => {
   const [isPC, setIsPC] = useState(window.innerWidth > 768);
   const [isCreationOpen, setIsCreationOpen] = useState(isPC);
   const [isUnplacedOpen, setIsUnplacedOpen] = useState(isPC);
-  const [isStatusOpen, setIsStatusOpen] = useState(true);
+  const [isStatusOpen, setIsStatusOpen] = useState(isPC); // PCは開く、スマホは閉じる
   const [isMobileChatOpen, setIsMobileChatOpen] = useState(false);
   const [activeId, setActiveId] = useState<string | null>(null);
 
+  // センサー設定: PC用のポインターと、スマホ用のタッチ（長押し）を追加
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
         distance: 10,
+      },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 250, // 250ms長押しで掴む
+        tolerance: 5, // 指が5px以上動いたらキャンセル
       },
     })
   );
@@ -98,6 +105,11 @@ const Dashboard: React.FC = () => {
   const activeUnit = units.find(u => u.id === activeId);
   const isLeftCollapsed = !isCreationOpen && !isUnplacedOpen;
 
+  const closeMobileSidebars = () => {
+    setIsCreationOpen(false);
+    setIsUnplacedOpen(false);
+  };
+
   return (
     <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
       <header className="bg-orange-800 border-b border-orange-950 h-14 md:h-16 flex items-center justify-between px-3 md:px-6 shrink-0 z-50 shadow-lg text-white">
@@ -137,6 +149,16 @@ const Dashboard: React.FC = () => {
           transition-all duration-300 bg-white border-r border-orange-200 flex flex-col overflow-hidden shadow-2xl
           ${isLeftCollapsed && 'translate-x-[-100%] md:translate-x-0'}
         `}>
+          {/* Mobile Close Button for Sidebar */}
+          {!isPC && !isLeftCollapsed && (
+            <button 
+              onClick={closeMobileSidebars}
+              className="absolute top-2 right-2 z-50 p-2 bg-orange-100 text-orange-900 rounded-full shadow-md"
+            >
+              <X size={24} />
+            </button>
+          )}
+
           <div className="flex flex-col border-b border-orange-100 min-h-0">
             <button 
               onClick={() => setIsCreationOpen(!isCreationOpen)}
@@ -146,8 +168,7 @@ const Dashboard: React.FC = () => {
                 <Users size={24} className="text-orange-700 shrink-0" /> 
                 {isCreationOpen && <span className="text-lg">キャラクター作成</span>}
               </div>
-              {isCreationOpen && <X size={20} className="md:hidden" />}
-              {isCreationOpen && <ChevronDown size={20} className="hidden md:block" />}
+              {isCreationOpen && <ChevronDown size={20} className={`${!isPC ? 'hidden' : 'block'}`} />}
             </button>
             <div className={`overflow-y-auto transition-all duration-300 ${isCreationOpen ? 'max-h-[80vh] md:max-h-[800px] p-5 pt-0 opacity-100' : 'max-h-0 opacity-0'}`}>
               <CharacterForm />
@@ -163,8 +184,7 @@ const Dashboard: React.FC = () => {
                 <LayoutDashboard size={24} className="text-orange-700 shrink-0" />
                 {isUnplacedOpen && <span className="text-lg">未配置エリア</span>}
               </div>
-              {isUnplacedOpen && <X size={20} className="md:hidden" />}
-              {isUnplacedOpen && <ChevronDown size={20} className="hidden md:block" />}
+              {isUnplacedOpen && <ChevronDown size={20} className={`${!isPC ? 'hidden' : 'block'}`} />}
             </button>
             <div className={`flex-1 overflow-y-auto custom-scrollbar transition-all duration-300 ${isUnplacedOpen ? 'p-5 pt-0 opacity-100' : 'opacity-0 max-h-0 p-0'}`}>
               <div className="space-y-6">
@@ -257,7 +277,7 @@ const Dashboard: React.FC = () => {
       {((!isLeftCollapsed || (!isPC && (isStatusOpen || isMobileChatOpen))) && !isPC) && (
         <div 
           className="fixed inset-0 bg-black/30 z-30" 
-          onClick={() => { setIsCreationOpen(false); setIsUnplacedOpen(false); setIsStatusOpen(false); setIsMobileChatOpen(false); }}
+          onClick={() => { closeMobileSidebars(); setIsStatusOpen(false); setIsMobileChatOpen(false); }}
         />
       )}
 
